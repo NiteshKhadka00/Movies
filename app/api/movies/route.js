@@ -1,14 +1,25 @@
 import { MongoClient, ObjectId } from "mongodb";
 
-// MongoDB URI from environment variable
-const client = new MongoClient(process.env.MONGODB_URI);
+if (!process.env.MONGODB_URI) {
+  throw new Error("Missing MONGODB_URI environment variable");
+}
+
+const client = new MongoClient(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 let db;
 
 async function connectDb() {
   if (!db) {
-    await client.connect();
-    db = client.db("moviesDB");
+    try {
+      await client.connect();
+      db = client.db("moviesDB");
+    } catch (error) {
+      console.error("MongoDB Connection Error:", error);
+      throw new Error("Failed to connect to MongoDB");
+    }
   }
   return db;
 }
